@@ -86,7 +86,6 @@ if page == "1. Input Form":
             "voyage": {
                 "dep_port": dep_port, "arr_port": arr_port,
       
-st.write("Voyage Info:", voyage_info)
 
                 "dep_coords": (dep_lat, dep_lon),
                 "arr_coords": (arr_lat, arr_lon)
