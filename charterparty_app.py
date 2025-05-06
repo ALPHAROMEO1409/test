@@ -10,7 +10,8 @@ st.set_page_config(page_title="Charter Party Performance", layout="wide", initia
 if "cp_data" not in st.session_state: st.session_state.cp_data = {}
 if "calc_file" not in st.session_state: st.session_state.calc_file = None
 if "weather_file" not in st.session_state: st.session_state.weather_file = None
-if "results" not in st.session_state: st.session_state.results = {
+if "results" not in st.session_state: st.session_state.results = {}
+
 # Sidebar navigation
 page = st.sidebar.radio("Navigation", ["1. Input Form", "2. CP Calculation", "3. Weather Data", "4. Dashboard & Report"])
 
@@ -117,16 +118,7 @@ elif page == "2. CP Calculation":
 
         st.subheader("Processing Results")
 
-       import pandas as pd
-
-# =========================
-# Input Parameters
-# =========================
-warranted_speed = 13.0  # knots
-warranted_consumption = 19.9 # MT/day
-fuel_tolerance_percent = 5.0  # %
-speed_tolerance_knots = 0.5  # knots
-
+       
 # =========================
 # Load Data
 # =========================
@@ -192,13 +184,8 @@ max_time = total_distance / (warranted_speed - speed_tolerance_knots)
 min_time = total_distance / (warranted_speed + speed_tolerance_knots)
 time_gained = (min_time - time_at_good_spd)if time_at_good_spd<min_time else 0
 time_lost = (time_at_good_spd - max_time)if time_at_good_spd>max_time else 0
-
-# =========================
-# Report Summary
-# =========================
-summary = pd.DataFrame({
-    "Metric": [
-        "Total Distance (nm)",
+        results = {
+             "Total Distance (nm)",
         "Total Steaming Time (hrs)",
         "Voyage Avg Speed (knots)",
         "Good Wx Distance (nm)",
@@ -222,33 +209,7 @@ summary = pd.DataFrame({
         "Min Time @ Warranted Spd (hrs)",
         "Time Gained (hrs)",
         "Time Lost (hrs)"
-    ],
-    "Value": [
-        total_distance,
-        total_time,
-        round(voyage_avg_speed, 2),
-        good_distance,
-        good_time,
-        round(good_speed, 2),
-        round(good_fuel, 2),
-        round(good_fo_hr, 3),
-        round(good_fo_day, 3),
-        bad_distance,
-        bad_time,
-        round(bad_fuel, 2),
-        round(bad_speed, 2),
-        round(total_fuel, 2),
-        round(entire_voyage_good_weather_based, 2),
-        round(max_warranted_cons, 2),
-        round(min_warranted_cons, 2),
-        round(fuel_overconsumption, 2),
-        round(fuel_saving, 2),
-        round(time_at_good_spd, 2),
-        round(max_time, 2),
-        round(min_time, 2),
-        round(time_gained, 2),
-        round(time_lost, 2)
-    ]
+        }
 
         st.session_state.results = results
         for key, value in results.items():
