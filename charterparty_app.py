@@ -47,20 +47,10 @@ if page == "1. Input Form":
     eosp_date = st.date_input("EOSP Date (UTC)")
     eosp_time = st.time_input("EOSP Time (UTC)")
 
-st.set_page_config(page_title="Decimal Coordinates Input", layout="centered")
-st.title("Enter Coordinates in Decimal Degrees")
-st.markdown("### Departure Coordinates")
-dep_lat = st.number_input("Departure Latitude", format="%.6f")
-dep_lon = st.number_input("Departure Longitude", format="%.6f")
-st.markdown("### Arrival Coordinates")
-arr_lat = st.number_input("Arrival Latitude", format="%.6f")
-arr_lon = st.number_input("Arrival Longitude", format="%.6f")
-
-if st.button("Submit"):
-    st.success("Coordinates received successfully.")
-    st.write(f"Departure: Latitude={dep_lat}, Longitude={dep_lon}")
-    st.write(f"Arrival: Latitude={arr_lat}, Longitude={arr_lon}")
-
+    dep_lat = st.number_input("Departure Latitude", format="%.6f")
+    dep_lon = st.number_input("Departure Longitude", format="%.6f")
+    arr_lat = st.number_input("Arrival Latitude", format="%.6f")
+    arr_lon = st.number_input("Arrival Longitude", format="%.6f")
 
     st.subheader("C. CP Terms - Speed & Consumption")
     cp_terms = st.data_editor(
