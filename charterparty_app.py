@@ -52,11 +52,11 @@ if page == "1. Input Form":
     arr_lon = st.number_input("Arrival Longitude", format="%.6f")
 
     st.subheader("C. CP Terms - Speed & Consumption")
-    cp_terms = st.experimental_data_editor(
-        pd.DataFrame(columns=["Speed (kn)", "ME Cons (MT/day)", "AE Cons (MT/day)"]),
-        num_rows="dynamic",
-        use_container_width=True,
-        key="cp_terms"
+    cp_terms = st.data_editor(
+    pd.DataFrame(columns=["Speed (kn)", "ME Cons (MT/day)", "AE Cons (MT/day)"]),
+    num_rows="dynamic",
+    use_container_width=True,
+    key="cp_terms"
     )
 
     st.subheader("D. Weather Definition (CP)")
