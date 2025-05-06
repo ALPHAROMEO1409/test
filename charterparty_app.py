@@ -46,64 +46,50 @@ if page == "1. Input Form":
     cosp_time = st.time_input("COSP Time (UTC)")
     eosp_date = st.date_input("EOSP Date (UTC)")
     eosp_time = st.time_input("EOSP Time (UTC)")
-    with st.form("dms_coordinates_form"):
-    st.markdown("## Enter Coordinates in DMS Format")
+   st.markdown("### Departure Latitude")
+   dep_lat_raw = st.text_input("Enter as: DDMM.SS (e.g., 1259.59 for 12°59.59')", key="dep_lat_raw")
+   dep_lat_dir = st.selectbox("N/S", ["N", "S"], key="dep_lat_dir")
 
-    st.markdown("### Departure Latitude & Longitude")
-    col1, col2 = st.columns(2)
+   st.markdown("### Departure Longitude")
+   dep_lon_raw = st.text_input("Enter as: DDDMM.SS (e.g., 12359.59 for 123°59.59')", key="dep_lon_raw")
+   dep_lon_dir = st.selectbox("E/W", ["E", "W"], key="dep_lon_dir")
 
-    with col1:
-        dep_lat_deg = st.number_input("Dep Lat Degrees (°)", min_value=0, max_value=90, step=1)
-        dep_lat_min = st.number_input("Dep Lat Minutes (')", min_value=0, max_value=59, step=1)
-        dep_lat_sec = st.number_input("Dep Lat Seconds (\")", min_value=0.0, max_value=59.999, step=0.1)
-        dep_lat_dir = st.selectbox("Dep Lat Direction", options=["N", "S"])
+   st.markdown("### Arrival Latitude")
+   arr_lat_raw = st.text_input("Enter as: DDMM.SS (e.g., 1359.59)", key="arr_lat_raw")
+   arr_lat_dir = st.selectbox("N/S", ["N", "S"], key="arr_lat_dir")
 
-    with col2:
-        dep_lon_deg = st.number_input("Dep Lon Degrees (°)", min_value=0, max_value=180, step=1)
-        dep_lon_min = st.number_input("Dep Lon Minutes (')", min_value=0, max_value=59, step=1)
-        dep_lon_sec = st.number_input("Dep Lon Seconds (\")", min_value=0.0, max_value=59.999, step=0.1)
-        dep_lon_dir = st.selectbox("Dep Lon Direction", options=["E", "W"])
+   st.markdown("### Arrival Longitude")
+   arr_lon_raw = st.text_input("Enter as: DDDMM.SS (e.g., 07734.56)", key="arr_lon_raw")
+   arr_lon_dir = st.selectbox("E/W", ["E", "W"], key="arr_lon_dir")
 
-    st.markdown("### Arrival Latitude & Longitude")
-    col3, col4 = st.columns(2)
+   if st.button("Convert to Decimal Degrees"):
+    def dms_to_decimal(dms_str, direction, is_lat=True):
+        try:
+            if is_lat:
+                deg = int(dms_str[:2])
+                min_sec = float(dms_str[2:])
+            else:
+                deg = int(dms_str[:3])
+                min_sec = float(dms_str[3:])
+            decimal = deg + min_sec / 60
+            if direction in ['S', 'W']:
+                decimal *= -1
+            return round(decimal, 6)
+        except:
+            return None
 
-    with col3:
-        arr_lat_deg = st.number_input("Arr Lat Degrees (°)", min_value=0, max_value=90, step=1)
-        arr_lat_min = st.number_input("Arr Lat Minutes (')", min_value=0, max_value=59, step=1)
-        arr_lat_sec = st.number_input("Arr Lat Seconds (\")", min_value=0.0, max_value=59.999, step=0.1)
-        arr_lat_dir = st.selectbox("Arr Lat Direction", options=["N", "S"])
+    dep_lat = dms_to_decimal(dep_lat_raw, dep_lat_dir, is_lat=True)
+    dep_lon = dms_to_decimal(dep_lon_raw, dep_lon_dir, is_lat=False)
+    arr_lat = dms_to_decimal(arr_lat_raw, arr_lat_dir, is_lat=True)
+    arr_lon = dms_to_decimal(arr_lon_raw, arr_lon_dir, is_lat=False)
 
-    with col4:
-        arr_lon_deg = st.number_input("Arr Lon Degrees (°)", min_value=0, max_value=180, step=1)
-        arr_lon_min = st.number_input("Arr Lon Minutes (')", min_value=0, max_value=59, step=1)
-        arr_lon_sec = st.number_input("Arr Lon Seconds (\")", min_value=0.0, max_value=59.999, step=0.1)
-        arr_lon_dir = st.selectbox("Arr Lon Direction", options=["E", "W"])
+    st.write("### Decimal Coordinates:")
+    st.write(f"Departure Latitude: {dep_lat}")
+    st.write(f"Departure Longitude: {dep_lon}")
+    st.write(f"Arrival Latitude: {arr_lat}")
+    st.write(f"Arrival Longitude: {arr_lon}")
 
-    submitted = st.form_submit_button("Convert to Decimal Degrees")
 
-if submitted:
-    # Conversion logic
-    dep_lat = dep_lat_deg + dep_lat_min / 60 + dep_lat_sec / 3600
-    if dep_lat_dir == "S":
-        dep_lat *= -1
-
-    dep_lon = dep_lon_deg + dep_lon_min / 60 + dep_lon_sec / 3600
-    if dep_lon_dir == "W":
-        dep_lon *= -1
-
-    arr_lat = arr_lat_deg + arr_lat_min / 60 + arr_lat_sec / 3600
-    if arr_lat_dir == "S":
-        arr_lat *= -1
-
-    arr_lon = arr_lon_deg + arr_lon_min / 60 + arr_lon_sec / 3600
-    if arr_lon_dir == "W":
-        arr_lon *= -1
-
-    st.success("Converted Decimal Coordinates:")
-    st.write(f"**Departure Latitude:** {dep_lat:.6f}")
-    st.write(f"**Departure Longitude:** {dep_lon:.6f}")
-    st.write(f"**Arrival Latitude:** {arr_lat:.6f}")
-    st.write(f"**Arrival Longitude:** {arr_lon:.6f}")
 
     st.subheader("C. CP Terms - Speed & Consumption")
     cp_terms = st.data_editor(
