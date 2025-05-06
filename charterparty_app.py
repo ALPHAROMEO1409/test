@@ -63,13 +63,12 @@ if page == "1. Input Form":
     beaufort_limit = st.selectbox("Max Beaufort Scale (Good Weather)", list(range(0, 13)))
     wave_height = st.number_input("Max Significant Wave Height (m)", format="%.2f")
     include_current = st.checkbox("Include Current Factor in Analysis", value=True)
-
-    st.subheader("E. Excluded Periods")
-   excluded_periods = st.experimental_data_editor(
-    pd.DataFrame(columns=["From (UTC)", "To (UTC)"]),
-    num_rows="dynamic",
-    use_container_width=True,
-    key="excluded_periods"
+with st.expander("Excluded Periods"):
+        cols = st.columns([2,1,2,1])
+        start_date = cols[0].date_input("Start Date (UTC)")
+        start_time = cols[1].time_input("Start Time (UTC)")
+        end_date = cols[2].date_input("End Date (UTC)")
+        end_time = cols[3].time_input("End Time (UTC)")
     )
 
     st.subheader("F. Additional Comments")
