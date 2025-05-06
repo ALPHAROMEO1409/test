@@ -47,7 +47,12 @@ if page == "1. Input Form":
     eosp_date = st.date_input("EOSP Date (UTC)")
     eosp_time = st.time_input("EOSP Time (UTC)")
 
+import streamlit as st
+
+# ✅ This MUST be the first Streamlit command
 st.set_page_config(page_title="Decimal Coordinates Input", layout="centered")
+
+# Now the rest of your Streamlit UI
 st.title("Enter Coordinates in Decimal Degrees")
 
 st.markdown("### Departure Coordinates")
@@ -58,14 +63,12 @@ st.markdown("### Arrival Coordinates")
 arr_lat = st.number_input("Arrival Latitude (e.g., 15.654321)", format="%.6f", key="arr_lat")
 arr_lon = st.number_input("Arrival Longitude (e.g., 80.987654)", format="%.6f", key="arr_lon")
 
-# Submit and Display
 if st.button("Submit Coordinates"):
     st.success("Coordinates Received!")
-    st.write("### Decimal Coordinates Summary")
-    st.write(f"Departure Latitude: `{dep_lat}`")
-    st.write(f"Departure Longitude: `{dep_lon}`")
-    st.write(f"Arrival Latitude: `{arr_lat}`")
-    st.write(f"Arrival Longitude: `{arr_lon}`")
+    st.write("### Summary")
+    st.write(f"Departure: ({dep_lat}, {dep_lon})")
+    st.write(f"Arrival: ({arr_lat}, {arr_lon})")
+
 
     st.subheader("C. CP Terms - Speed & Consumption")
     cp_terms = st.data_editor(
