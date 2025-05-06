@@ -213,9 +213,6 @@ results = {
     "Time Lost (hrs)": 0
 }
 
-st.subheader("CP Calculation Results")
-for key, value in results.items():
-    st.markdown(f"**{key}**: {value}")
     else:
         st.warning("Please upload calculation data on Page 1.")
 
