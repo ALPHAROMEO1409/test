@@ -248,8 +248,7 @@ summary = pd.DataFrame({
         round(min_time, 2),
         round(time_gained, 2),
         round(time_lost, 2)
- 
-        }
+    ]
 
         st.session_state.results = results
         for key, value in results.items():
