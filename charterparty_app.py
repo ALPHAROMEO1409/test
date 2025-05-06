@@ -248,22 +248,7 @@ summary = pd.DataFrame({
         round(min_time, 2),
         round(time_gained, 2),
         round(time_lost, 2)
-    ]
-})
-
-# Optional: Export to Excel
-# summary.to_excel("voyage_performance_report.xlsx", index=False)
-
-print(summary)
-        # >>> Replace the below with real CP performance calculations <<<
-        results = {
-            "Total Distance (nm)": 1234,
-            "Total Steaming Time (hrs)": 120.5,
-            "Voyage Avg Speed (knots)": 10.2,
-            "Good Wx Distance (nm)": 1020,
-            "Fuel Overconsumption (MT)": 5.6,
-            "Time Gained (hrs)": 1.8,
-            "Time Lost (hrs)": 3.2
+ 
         }
 
         st.session_state.results = results
