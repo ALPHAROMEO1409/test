@@ -1,14 +1,17 @@
 # charterparty_performance.py
 import streamlit as st
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timezone
 from io import BytesIO
 
 # Initialize session state
 if 'vessel' not in st.session_state:
     st.session_state.vessel = {}
 if 'voyage' not in st.session_state:
-    st.session_state.voyage = {}
+    st.session_state.voyage = {
+        'cosp': datetime.now(timezone.utc),
+        'eosp': datetime.now(timezone.utc)
+    }
 if 'cp_terms' not in st.session_state:
     st.session_state.cp_terms = []
 if 'weather_def' not in st.session_state:
@@ -45,12 +48,21 @@ def input_configuration():
     
     with st.expander("Voyage Details"):
         cols = st.columns(2)
-        st.session_state.voyage['dep_port'] = cols[0].text_input("Departure Port")
-        st.session_state.voyage['arr_port'] = cols[1].text_input("Arrival Port")
         
-        cols = st.columns(2)
-        st.session_state.voyage['cosp'] = cols[0].datetime_input("COSP (UTC)", value=datetime.utcnow())
-        st.session_state.voyage['eosp'] = cols[1].datetime_input("EOSP (UTC)", value=datetime.utcnow())
+        # Corrected datetime inputs with proper UTC handling
+        cosp = cols[0].datetime_input(
+            "COSP (UTC)",
+            value=st.session_state.voyage.get('cosp', datetime.now(timezone.utc)),
+            key="cosp_input"
+        )
+        st.session_state.voyage['cosp'] = cosp.astimezone(timezone.utc) if cosp.tzinfo else cosp.replace(tzinfo=timezone.utc)
+        
+        eosp = cols[1].datetime_input(
+            "EOSP (UTC)",
+            value=st.session_state.voyage.get('eosp', datetime.now(timezone.utc)),
+            key="eosp_input"
+        )
+        st.session_state.voyage['eosp'] = eosp.astimezone(timezone.utc) if eosp.tzinfo else eosp.replace(tzinfo=timezone.utc)
         
         cols = st.columns(2)
         st.session_state.voyage['dep_lat'] = cols[0].number_input("Departure Latitude", format="%.4f")
