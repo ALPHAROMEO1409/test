@@ -47,25 +47,19 @@ if page == "1. Input Form":
     eosp_date = st.date_input("EOSP Date (UTC)")
     eosp_time = st.time_input("EOSP Time (UTC)")
 
-
 st.set_page_config(page_title="Decimal Coordinates Input", layout="centered")
-
-# Now the rest of your Streamlit UI
 st.title("Enter Coordinates in Decimal Degrees")
-
 st.markdown("### Departure Coordinates")
-dep_lat = st.number_input("Departure Latitude (e.g., 12.345678)", format="%.6f", key="dep_lat")
-dep_lon = st.number_input("Departure Longitude (e.g., 77.123456)", format="%.6f", key="dep_lon")
-
+dep_lat = st.number_input("Departure Latitude", format="%.6f")
+dep_lon = st.number_input("Departure Longitude", format="%.6f")
 st.markdown("### Arrival Coordinates")
-arr_lat = st.number_input("Arrival Latitude (e.g., 15.654321)", format="%.6f", key="arr_lat")
-arr_lon = st.number_input("Arrival Longitude (e.g., 80.987654)", format="%.6f", key="arr_lon")
+arr_lat = st.number_input("Arrival Latitude", format="%.6f")
+arr_lon = st.number_input("Arrival Longitude", format="%.6f")
 
-if st.button("Submit Coordinates"):
-    st.success("Coordinates Received!")
-    st.write("### Summary")
-    st.write(f"Departure: ({dep_lat}, {dep_lon})")
-    st.write(f"Arrival: ({arr_lat}, {arr_lon})")
+if st.button("Submit"):
+    st.success("Coordinates received successfully.")
+    st.write(f"Departure: Latitude={dep_lat}, Longitude={dep_lon}")
+    st.write(f"Arrival: Latitude={arr_lat}, Longitude={arr_lon}")
 
 
     st.subheader("C. CP Terms - Speed & Consumption")
