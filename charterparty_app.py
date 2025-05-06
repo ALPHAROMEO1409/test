@@ -47,9 +47,7 @@ if page == "1. Input Form":
     eosp_date = st.date_input("EOSP Date (UTC)")
     eosp_time = st.time_input("EOSP Time (UTC)")
 
-import streamlit as st
 
-# ✅ This MUST be the first Streamlit command
 st.set_page_config(page_title="Decimal Coordinates Input", layout="centered")
 
 # Now the rest of your Streamlit UI
