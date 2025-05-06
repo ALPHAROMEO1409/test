@@ -3,8 +3,6 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 from io import BytesIO
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
 
 # Initialize session state
 if 'vessel' not in st.session_state:
@@ -284,24 +282,42 @@ def dashboard_page():
 
 def create_pdf():
     buffer = BytesIO()
-    p = canvas.Canvas(buffer, pagesize=letter)
     
-    # Add report content
-    p.drawString(100, 750, "Charterparty Performance Report")
-    p.drawString(100, 730, f"Vessel: {st.session_state.vessel.get('name', 'N/A')}")
-    p.drawString(100, 710, f"Voyage: {st.session_state.voyage.get('dep_port', 'N/A')} to {st.session_state.voyage.get('arr_port', 'N/A')}")
+    report_content = f"""
+    Charterparty Performance Report
+    ==============================
+    Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}
     
-    # Add more content as needed
-    p.showPage()
-    p.save()
+    Vessel Information
+    ------------------
+    Name: {st.session_state.vessel.get('name', 'N/A')}
+    IMO: {st.session_state.vessel.get('imo', 'N/A')}
+    GRT: {st.session_state.vessel.get('grt', 'N/A')}
     
+    Voyage Details
+    --------------
+    Departure: {st.session_state.voyage.get('dep_port', 'N/A')}
+    Arrival: {st.session_state.voyage.get('arr_port', 'N/A')}
+    COSP: {st.session_state.voyage.get('cosp', 'N/A')}
+    EOSP: {st.session_state.voyage.get('eosp', 'N/A')}
+    
+    Performance Summary
+    -------------------
+    """
+    
+    if st.session_state.calc_data is not None:
+        results = perform_calculations(st.session_state.calc_data)
+        if results:
+            report_content += "\n".join([f"{k}: {v}" for k, v in results.items()])
+    
+    buffer.write(report_content.encode())
     buffer.seek(0)
     return buffer
 
 def generate_report():
     pdf_buffer = create_pdf()
     st.download_button(
-        label="Download PDF Report",
+        label="📄 Download PDF Report",
         data=pdf_buffer,
         file_name="performance_report.pdf",
         mime="application/pdf"
@@ -319,5 +335,5 @@ selection = st.sidebar.radio("Go to", list(pages.keys()))
 pages[selection]()
 
 st.sidebar.divider()
-if st.sidebar.button("📄 Generate Report"):
+if st.sidebar.button("Generate Report"):
     generate_report()
