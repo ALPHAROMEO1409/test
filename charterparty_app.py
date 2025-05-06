@@ -12,7 +12,7 @@ if "calc_file" not in st.session_state: st.session_state.calc_file = None
 if "weather_file" not in st.session_state: st.session_state.weather_file = None
 if "results" not in st.session_state: st.session_state.results = {
 # Sidebar navigation
-page '==' st.sidebar.radio("Navigation", ["1. Input Form", "2. CP Calculation", "3. Weather Data", "4. Dashboard & Report"])
+page = st.sidebar.radio("Navigation", ["1. Input Form", "2. CP Calculation", "3. Weather Data", "4. Dashboard & Report"])
 
 st.markdown(
     """
