@@ -65,7 +65,7 @@ if page == "1. Input Form":
     include_current = st.checkbox("Include Current Factor in Analysis", value=True)
 
     st.subheader("E. Excluded Periods")
-   excluded_periods = st.data_editor(
+   excluded_periods = st.experimental_data_editor(
     pd.DataFrame(columns=["From (UTC)", "To (UTC)"]),
     num_rows="dynamic",
     use_container_width=True,
