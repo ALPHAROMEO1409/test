@@ -46,7 +46,6 @@ if page == "1. Input Form":
     cosp_time = st.time_input("COSP Time (UTC)")
     eosp_date = st.date_input("EOSP Date (UTC)")
     eosp_time = st.time_input("EOSP Time (UTC)")
-  import streamlit as st
 
 st.set_page_config(page_title="Decimal Coordinates Input", layout="centered")
 st.title("Enter Coordinates in Decimal Degrees")
