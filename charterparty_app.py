@@ -85,26 +85,7 @@ if page == "1. Input Form":
             "vessel": {"name": vessel_name, "imo": imo_no, "grt": grt},
             "voyage": {
                 "dep_port": dep_port, "arr_port": arr_port,
-                
-               from datetime import datetime
-import streamlit as st
-
-# COSP input
-     cosp_date = st.date_input("COSP Date (UTC)")
-     cosp_time = st.time_input("COSP Time (UTC)")
-     cosp = datetime.combine(cosp_date, cosp_time)
-
-# EOSP input
-    eosp_date = st.date_input("EOSP Date (UTC)")
-    eosp_time = st.time_input("EOSP Time (UTC)")
-    eosp = datetime.combine(eosp_date, eosp_time)
-
-# Example usage
-voyage_info = {
-    "cosp": cosp.isoformat(),
-    "eosp": eosp.isoformat()
-}
-
+      
 st.write("Voyage Info:", voyage_info)
 
                 "dep_coords": (dep_lat, dep_lon),
