@@ -186,7 +186,6 @@ time_gained = (min_time - time_at_good_spd)if time_at_good_spd<min_time else 0
 time_lost = (time_at_good_spd - max_time)if time_at_good_spd>max_time else 0
        import streamlit as st
 
-# Example CP performance results (replace these with actual calculated values)
 results = {
     "Total Distance (nm)": 0,
     "Total Steaming Time (hrs)": 0,
@@ -214,15 +213,9 @@ results = {
     "Time Lost (hrs)": 0
 }
 
-# Display the results in Streamlit
 st.subheader("CP Calculation Results")
 for key, value in results.items():
     st.markdown(f"**{key}**: {value}")
-
-
-        st.session_state.results = results
-        for key, value in results.items():
-            st.metric(label=key, value=value)
     else:
         st.warning("Please upload calculation data on Page 1.")
 
