@@ -184,8 +184,11 @@ max_time = total_distance / (warranted_speed - speed_tolerance_knots)
 min_time = total_distance / (warranted_speed + speed_tolerance_knots)
 time_gained = (min_time - time_at_good_spd)if time_at_good_spd<min_time else 0
 time_lost = (time_at_good_spd - max_time)if time_at_good_spd>max_time else 0
-        results = {
-             "Total Distance (nm)": 0,
+       import streamlit as st
+
+# Example CP performance results (replace these with actual calculated values)
+results = {
+    "Total Distance (nm)": 0,
     "Total Steaming Time (hrs)": 0,
     "Voyage Avg Speed (knots)": 0,
     "Good Wx Distance (nm)": 0,
@@ -209,7 +212,13 @@ time_lost = (time_at_good_spd - max_time)if time_at_good_spd>max_time else 0
     "Min Time @ Warranted Spd (hrs)": 0,
     "Time Gained (hrs)": 0,
     "Time Lost (hrs)": 0
-        }
+}
+
+# Display the results in Streamlit
+st.subheader("CP Calculation Results")
+for key, value in results.items():
+    st.markdown(f"**{key}**: {value}")
+
 
         st.session_state.results = results
         for key, value in results.items():
