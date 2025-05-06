@@ -46,50 +46,27 @@ if page == "1. Input Form":
     cosp_time = st.time_input("COSP Time (UTC)")
     eosp_date = st.date_input("EOSP Date (UTC)")
     eosp_time = st.time_input("EOSP Time (UTC)")
-   st.markdown("### Departure Latitude")
-   dep_lat_raw = st.text_input("Enter as: DDMM.SS (e.g., 1259.59 for 12°59.59')", key="dep_lat_raw")
-   dep_lat_dir = st.selectbox("N/S", ["N", "S"], key="dep_lat_dir")
+  import streamlit as st
 
-   st.markdown("### Departure Longitude")
-   dep_lon_raw = st.text_input("Enter as: DDDMM.SS (e.g., 12359.59 for 123°59.59')", key="dep_lon_raw")
-   dep_lon_dir = st.selectbox("E/W", ["E", "W"], key="dep_lon_dir")
+st.set_page_config(page_title="Decimal Coordinates Input", layout="centered")
+st.title("Enter Coordinates in Decimal Degrees")
 
-   st.markdown("### Arrival Latitude")
-   arr_lat_raw = st.text_input("Enter as: DDMM.SS (e.g., 1359.59)", key="arr_lat_raw")
-   arr_lat_dir = st.selectbox("N/S", ["N", "S"], key="arr_lat_dir")
+st.markdown("### Departure Coordinates")
+dep_lat = st.number_input("Departure Latitude (e.g., 12.345678)", format="%.6f", key="dep_lat")
+dep_lon = st.number_input("Departure Longitude (e.g., 77.123456)", format="%.6f", key="dep_lon")
 
-   st.markdown("### Arrival Longitude")
-   arr_lon_raw = st.text_input("Enter as: DDDMM.SS (e.g., 07734.56)", key="arr_lon_raw")
-   arr_lon_dir = st.selectbox("E/W", ["E", "W"], key="arr_lon_dir")
+st.markdown("### Arrival Coordinates")
+arr_lat = st.number_input("Arrival Latitude (e.g., 15.654321)", format="%.6f", key="arr_lat")
+arr_lon = st.number_input("Arrival Longitude (e.g., 80.987654)", format="%.6f", key="arr_lon")
 
-   if st.button("Convert to Decimal Degrees"):
-    def dms_to_decimal(dms_str, direction, is_lat=True):
-        try:
-            if is_lat:
-                deg = int(dms_str[:2])
-                min_sec = float(dms_str[2:])
-            else:
-                deg = int(dms_str[:3])
-                min_sec = float(dms_str[3:])
-            decimal = deg + min_sec / 60
-            if direction in ['S', 'W']:
-                decimal *= -1
-            return round(decimal, 6)
-        except:
-            return None
-
-    dep_lat = dms_to_decimal(dep_lat_raw, dep_lat_dir, is_lat=True)
-    dep_lon = dms_to_decimal(dep_lon_raw, dep_lon_dir, is_lat=False)
-    arr_lat = dms_to_decimal(arr_lat_raw, arr_lat_dir, is_lat=True)
-    arr_lon = dms_to_decimal(arr_lon_raw, arr_lon_dir, is_lat=False)
-
-    st.write("### Decimal Coordinates:")
-    st.write(f"Departure Latitude: {dep_lat}")
-    st.write(f"Departure Longitude: {dep_lon}")
-    st.write(f"Arrival Latitude: {arr_lat}")
-    st.write(f"Arrival Longitude: {arr_lon}")
-
-
+# Submit and Display
+if st.button("Submit Coordinates"):
+    st.success("Coordinates Received!")
+    st.write("### Decimal Coordinates Summary")
+    st.write(f"Departure Latitude: `{dep_lat}`")
+    st.write(f"Departure Longitude: `{dep_lon}`")
+    st.write(f"Arrival Latitude: `{arr_lat}`")
+    st.write(f"Arrival Longitude: `{arr_lon}`")
 
     st.subheader("C. CP Terms - Speed & Consumption")
     cp_terms = st.data_editor(
