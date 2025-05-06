@@ -184,7 +184,7 @@ max_time = total_distance / (warranted_speed - speed_tolerance_knots)
 min_time = total_distance / (warranted_speed + speed_tolerance_knots)
 time_gained = (min_time - time_at_good_spd)if time_at_good_spd<min_time else 0
 time_lost = (time_at_good_spd - max_time)if time_at_good_spd>max_time else 0
-       import streamlit as st
+import streamlit as st
 
 results = {
     "Total Distance (nm)": 0,
