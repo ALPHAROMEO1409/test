@@ -49,20 +49,20 @@ def input_configuration():
     with st.expander("Voyage Details"):
         cols = st.columns(2)
         
-        # Corrected datetime inputs with proper UTC handling
+        # UTC datetime inputs
         cosp = cols[0].datetime_input(
             "COSP (UTC)",
-            value=st.session_state.voyage.get('cosp', datetime.now(timezone.utc)),
+            value=st.session_state.voyage.get('cosp'),
             key="cosp_input"
         )
-        st.session_state.voyage['cosp'] = cosp.astimezone(timezone.utc) if cosp.tzinfo else cosp.replace(tzinfo=timezone.utc)
+        st.session_state.voyage['cosp'] = cosp.astimezone(timezone.utc)
         
         eosp = cols[1].datetime_input(
             "EOSP (UTC)",
-            value=st.session_state.voyage.get('eosp', datetime.now(timezone.utc)),
+            value=st.session_state.voyage.get('eosp'),
             key="eosp_input"
         )
-        st.session_state.voyage['eosp'] = eosp.astimezone(timezone.utc) if eosp.tzinfo else eosp.replace(tzinfo=timezone.utc)
+        st.session_state.voyage['eosp'] = eosp.astimezone(timezone.utc)
         
         cols = st.columns(2)
         st.session_state.voyage['dep_lat'] = cols[0].number_input("Departure Latitude", format="%.4f")
@@ -100,19 +100,16 @@ def input_configuration():
         st.session_state.weather_def['include_current'] = st.checkbox("Include Current Factor")
     
     with st.expander("Excluded Periods"):
-        cols = st.columns(3)
-        start = cols[0].date_input("Start Date (UTC)")
+        cols = st.columns([2,1,2,1])
+        start_date = cols[0].date_input("Start Date (UTC)")
         start_time = cols[1].time_input("Start Time (UTC)")
-        end = cols[2].date_input("End Date (UTC)")
+        end_date = cols[2].date_input("End Date (UTC)")
         end_time = cols[3].time_input("End Time (UTC)")
         
         if st.button("Add Exclusion"):
-            st.session_state.exclusions.append({
-                'start': datetime.combine(start, start_time),
-                'end': datetime.combine(end, end_time)
-            })
-        if st.button("Clear Exclusions"):
-            st.session_state.exclusions = []
+            start_dt = datetime.combine(start_date, start_time).replace(tzinfo=timezone.utc)
+            end_dt = datetime.combine(end_date, end_time).replace(tzinfo=timezone.utc)
+            st.session_state.exclusions.append({'start': start_dt, 'end': end_dt})
         
         if st.session_state.exclusions:
             st.write("Current Exclusions:")
@@ -120,19 +117,13 @@ def input_configuration():
                 st.write(f"{idx+1}. {period['start']} to {period['end']}")
     
     with st.expander("Data Upload"):
-        calc_file = st.file_uploader("Upload Calculation Data (CSV/Excel)", type=['csv', 'xlsx'])
+        calc_file = st.file_uploader("Calculation Data (CSV/Excel)", type=['csv', 'xlsx'])
         if calc_file:
-            if calc_file.name.endswith('.xlsx'):
-                st.session_state.calc_data = pd.read_excel(calc_file)
-            else:
-                st.session_state.calc_data = pd.read_csv(calc_file)
+            st.session_state.calc_data = pd.read_excel(calc_file) if calc_file.name.endswith('.xlsx') else pd.read_csv(calc_file)
         
-        weather_file = st.file_uploader("Upload Weather Data (CSV/Excel)", type=['csv', 'xlsx'])
+        weather_file = st.file_uploader("Weather Data (CSV/Excel)", type=['csv', 'xlsx'])
         if weather_file:
-            if weather_file.name.endswith('.xlsx'):
-                st.session_state.weather_data = pd.read_excel(weather_file)
-            else:
-                st.session_state.weather_data = pd.read_csv(weather_file)
+            st.session_state.weather_data = pd.read_excel(weather_file) if weather_file.name.endswith('.xlsx') else pd.read_csv(weather_file)
 
 def perform_calculations(df):
     if not st.session_state.cp_terms:
@@ -142,8 +133,8 @@ def perform_calculations(df):
     cp_term = st.session_state.cp_terms[0]
     warranted_speed = cp_term['speed']
     warranted_consumption = cp_term['me_consumption']
-    fuel_tolerance_percent = 5.0  # Default value
-    speed_tolerance_knots = 0.5    # Default value
+    fuel_tolerance = 5.0
+    speed_tolerance = 0.5
 
     df = df[df['event_type'].isin(['NOON AT SEA', 'COSP', 'EOSP'])]
     
@@ -171,51 +162,35 @@ def perform_calculations(df):
     bad_fuel = bad_days['me_fuel_consumed'].sum()
     bad_speed = bad_distance / bad_time if bad_time else 0
 
-    fuel_tolerance_mt = warranted_consumption * (fuel_tolerance_percent / 100)
-    warranted_plus_tol = warranted_consumption + fuel_tolerance_mt
-    warranted_minus_tol = warranted_consumption - fuel_tolerance_mt
+    speed_condition = warranted_speed - speed_tolerance if good_speed < warranted_speed - speed_tolerance else warranted_speed + speed_tolerance if good_speed > warranted_speed + speed_tolerance else good_speed
 
-    speed_condition = (
-        warranted_speed - speed_tolerance_knots 
-        if good_speed < warranted_speed - speed_tolerance_knots 
-        else warranted_speed + speed_tolerance_knots 
-        if good_speed > warranted_speed + speed_tolerance_knots 
-        else good_speed
-    )
+    entire_voyage_consumption = (total_distance / good_speed) * (good_fo_day / 24) if good_speed else 0
+    max_warranted = (total_distance / speed_condition) * ((warranted_consumption * 1.05) / 24)
+    min_warranted = (total_distance / speed_condition) * ((warranted_consumption * 0.95) / 24)
 
-    entire_voyage_good_weather_based = (total_distance / good_speed) * (good_fo_day / 24) if good_speed else 0
-    max_warranted_cons = (total_distance / speed_condition) * (warranted_plus_tol / 24)
-    min_warranted_cons = (total_distance / speed_condition) * (warranted_minus_tol / 24)
+    fuel_over = max(entire_voyage_consumption - max_warranted, 0)
+    fuel_saved = max(min_warranted - entire_voyage_consumption, 0)
 
-    fuel_overconsumption = max(entire_voyage_good_weather_based - max_warranted_cons, 0)
-    fuel_saving = max(min_warranted_cons - entire_voyage_good_weather_based, 0)
-
-    time_at_good_spd = total_distance / speed_condition
-    max_time = total_distance / (warranted_speed - speed_tolerance_knots)
-    min_time = total_distance / (warranted_speed + speed_tolerance_knots)
-    time_gained = max(min_time - time_at_good_spd, 0)
-    time_lost = max(time_at_good_spd - max_time, 0)
+    time_at_good = total_distance / speed_condition
+    max_time = total_distance / (warranted_speed - speed_tolerance)
+    min_time = total_distance / (warranted_speed + speed_tolerance)
+    time_gained = max(min_time - time_at_good, 0)
+    time_lost = max(time_at_good - max_time, 0)
 
     return {
         'total_distance': total_distance,
-        'total_steaming_time': total_time,
-        'voyage_avg_speed': voyage_avg_speed,
-        'good_wx_distance': good_distance,
-        'good_wx_time': good_time,
-        'good_wx_speed': good_speed,
-        'good_wx_fo_cons': good_fuel,
-        'good_wx_fo_rate_hr': good_fo_hr,
-        'good_wx_fo_rate_day': good_fo_day,
-        'bad_wx_distance': bad_distance,
-        'bad_wx_time': bad_time,
-        'bad_wx_fo_cons': bad_fuel,
-        'bad_wx_speed': bad_speed,
-        'total_me_fuel': total_fuel,
-        'entire_voyage_cons': entire_voyage_good_weather_based,
-        'max_warranted_fo': max_warranted_cons,
-        'min_warranted_fo': min_warranted_cons,
-        'fuel_overconsumption': fuel_overconsumption,
-        'fuel_saving': fuel_saving,
+        'total_time': total_time,
+        'avg_speed': voyage_avg_speed,
+        'good_distance': good_distance,
+        'good_time': good_time,
+        'good_speed': good_speed,
+        'good_fuel': good_fuel,
+        'bad_distance': bad_distance,
+        'bad_time': bad_time,
+        'bad_fuel': bad_fuel,
+        'bad_speed': bad_speed,
+        'fuel_over': fuel_over,
+        'fuel_saved': fuel_saved,
         'time_gained': time_gained,
         'time_lost': time_lost
     }
@@ -230,14 +205,30 @@ def calculations():
             if results:
                 cols = st.columns(4)
                 cols[0].metric("Total Distance", f"{results['total_distance']:.1f} nm")
-                cols[1].metric("Avg Speed", f"{results['voyage_avg_speed']:.1f} knots")
-                cols[2].metric("Total Fuel", f"{results['total_me_fuel']:.1f} MT")
+                cols[1].metric("Avg Speed", f"{results['avg_speed']:.1f} knots")
+                cols[2].metric("Total Fuel", f"{results['good_fuel'] + results['bad_fuel']:.1f} MT")
                 cols[3].metric("Time Difference", 
-                    f"Gained: {results['time_gained']:.1f} hrs" if results['time_gained'] > 0 
-                    else f"Lost: {results['time_lost']:.1f} hrs")
+                    f"▲ {results['time_gained']:.1f}h" if results['time_gained'] else f"▼ {results['time_lost']:.1f}h")
 
-                st.subheader("Detailed Results")
-                st.table(pd.DataFrame(list(results.items()), columns=['Metric', 'Value']))
+                with st.expander("Detailed Results"):
+                    st.table(pd.DataFrame({
+                        'Metric': [
+                            'Good Weather Distance', 'Good Weather Time', 'Good Weather Speed',
+                            'Bad Weather Distance', 'Bad Weather Time', 'Fuel Overconsumption',
+                            'Fuel Savings', 'Time Gained', 'Time Lost'
+                        ],
+                        'Value': [
+                            f"{results['good_distance']:.1f} nm",
+                            f"{results['good_time']:.1f} hrs",
+                            f"{results['good_speed']:.1f} knots",
+                            f"{results['bad_distance']:.1f} nm",
+                            f"{results['bad_time']:.1f} hrs",
+                            f"{results['fuel_over']:.1f} MT",
+                            f"{results['fuel_saved']:.1f} MT",
+                            f"{results['time_gained']:.1f} hrs",
+                            f"{results['time_lost']:.1f} hrs"
+                        ]
+                    }))
                 
         except Exception as e:
             st.error(f"Calculation error: {str(e)}")
@@ -245,92 +236,67 @@ def calculations():
         st.warning("Please upload calculation data in Configuration page")
 
 def weather_analysis():
-    st.header("🌦️ Weather Data Analysis")
+    st.header("🌦️ Weather Analysis")
     
     if st.session_state.weather_data is not None:
-        st.dataframe(
-            st.session_state.weather_data.style.format({
-                'wind_speed': "{:.1f} m/s",
-                'wave_height': "{:.2f} m"
-            }),
-            use_container_width=True
-        )
+        st.dataframe(st.session_state.weather_data, use_container_width=True)
         
-        st.subheader("Weather Statistics")
         cols = st.columns(3)
-        cols[0].metric("Max Wind Speed", 
-            f"{st.session_state.weather_data['wind_speed'].max():.1f} m/s")
-        cols[1].metric("Max Wave Height", 
-            f"{st.session_state.weather_data['wave_height'].max():.1f} m")
+        cols[0].metric("Max Wind Speed", f"{st.session_state.weather_data['wind_speed'].max():.1f} m/s")
+        cols[1].metric("Max Wave Height", f"{st.session_state.weather_data['wave_height'].max():.1f} m")
         cols[2].metric("Bad Weather Days", 
             f"{len(st.session_state.weather_data[st.session_state.weather_data['day_status'] == 'BAD WEATHER DAY'])}")
+        
+        st.line_chart(st.session_state.weather_data[['wind_speed', 'wave_height']])
     else:
         st.warning("Please upload weather data in Configuration page")
-
-def dashboard_page():
-    st.header("📊 Performance Dashboard")
-    
-    if st.session_state.calc_data is not None:
-        df = st.session_state.calc_data
-        
-        st.subheader("Speed Analysis")
-        st.line_chart(df[['speed', 'warranted_speed']])
-        
-        st.subheader("Fuel Consumption")
-        st.bar_chart(df['me_fuel_consumed'])
-        
-        cols = st.columns(2)
-        with cols[0]:
-            st.subheader("Weather Distribution")
-            weather_counts = df['day_status'].value_counts()
-            st.bar_chart(weather_counts)
-        
-        with cols[1]:
-            st.subheader("Performance Metrics")
-            st.metric("Total Distance", f"{df['distance_travelled_actual'].sum():.1f} nm")
-            st.metric("Average Speed", f"{df['speed'].mean():.1f} knots")
-    else:
-        st.warning("Please upload calculation data in Configuration page")
 
 def create_pdf():
     buffer = BytesIO()
     
-    report_content = f"""
-    Charterparty Performance Report
-    ==============================
-    Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}
+    # PDF Content
+    report = f"""
+    CHARTERPARTY PERFORMANCE REPORT
+    ===============================
+    Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}
     
-    Vessel Information
-    ------------------
+    VESSEL DETAILS
+    --------------
     Name: {st.session_state.vessel.get('name', 'N/A')}
     IMO: {st.session_state.vessel.get('imo', 'N/A')}
     GRT: {st.session_state.vessel.get('grt', 'N/A')}
     
-    Voyage Details
+    VOYAGE DETAILS
     --------------
-    Departure: {st.session_state.voyage.get('dep_port', 'N/A')}
-    Arrival: {st.session_state.voyage.get('arr_port', 'N/A')}
-    COSP: {st.session_state.voyage.get('cosp', 'N/A')}
-    EOSP: {st.session_state.voyage.get('eosp', 'N/A')}
+    Departure Port: {st.session_state.voyage.get('dep_port', 'N/A')}
+    Arrival Port: {st.session_state.voyage.get('arr_port', 'N/A')}
+    COSP: {st.session_state.voyage.get('cosp', 'N/A').strftime('%Y-%m-%d %H:%M UTC')}
+    EOSP: {st.session_state.voyage.get('eosp', 'N/A').strftime('%Y-%m-%d %H:%M UTC')}
     
-    Performance Summary
+    PERFORMANCE SUMMARY
     -------------------
     """
     
     if st.session_state.calc_data is not None:
         results = perform_calculations(st.session_state.calc_data)
         if results:
-            report_content += "\n".join([f"{k}: {v}" for k, v in results.items()])
+            report += f"""
+            Total Distance: {results['total_distance']:.1f} nm
+            Average Speed: {results['avg_speed']:.1f} knots
+            Total Fuel Consumption: {results['good_fuel'] + results['bad_fuel']:.1f} MT
+            Time Difference: {'Gained ' if results['time_gained'] else 'Lost '} 
+                            {abs(results['time_gained'] or results['time_lost']):.1f} hours
+            """
     
-    buffer.write(report_content.encode())
+    buffer.write(report.encode())
     buffer.seek(0)
     return buffer
 
 def generate_report():
-    pdf_buffer = create_pdf()
+    pdf = create_pdf()
     st.download_button(
-        label="📄 Download PDF Report",
-        data=pdf_buffer,
+        label="📄 Download Report",
+        data=pdf,
         file_name="performance_report.pdf",
         mime="application/pdf"
     )
@@ -339,7 +305,6 @@ pages = {
     "Configuration": input_configuration,
     "Calculations": calculations,
     "Weather Analysis": weather_analysis,
-    "Dashboard": dashboard_page
 }
 
 st.sidebar.title("Navigation")
@@ -347,5 +312,4 @@ selection = st.sidebar.radio("Go to", list(pages.keys()))
 pages[selection]()
 
 st.sidebar.divider()
-if st.sidebar.button("Generate Report"):
-    generate_report()
+generate_report()
