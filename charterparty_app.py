@@ -210,8 +210,7 @@ results = {
     "Max Time @ Warranted Spd (hrs)": 0,
     "Min Time @ Warranted Spd (hrs)": 0,
     "Time Gained (hrs)": 0,
-    "Time Lost (hrs)": 0
-}
+    "Time Lost (hrs)": 0}
 
     else:
         st.warning("Please upload calculation data on Page 1.")
