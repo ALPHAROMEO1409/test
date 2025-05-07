@@ -118,102 +118,23 @@ elif page == "2. CP Calculation":
 
         st.subheader("Processing Results")
 
-       
-# =========================
-# Load Data
-# =========================
-df = pd.read_excel("/content/sample_data/cp SAMPLE DATA for  .xlsx")  # Replace with actual filename
+        # Placeholder for your actual Python logic
+        # >>> Replace the below with real CP performance calculations <<<
+        results = {
+            "Total Distance (nm)": 1234,
+            "Total Steaming Time (hrs)": 120.5,
+            "Voyage Avg Speed (knots)": 10.2,
+            "Good Wx Distance (nm)": 1020,
+            "Fuel Overconsumption (MT)": 5.6,
+            "Time Gained (hrs)": 1.8,
+            "Time Lost (hrs)": 3.2
+        }
 
-# Filter relevant rows: NOON AT SEA, COSP, and EOSP
-df = df[df['event_type'].isin(['NOON AT SEA', 'COSP', 'EOSP'])]
-
-# Ensure numeric types for calculations
-df['distance_travelled_actual'] = pd.to_numeric(df['distance_travelled_actual'], errors='coerce')
-df['steaming_time_hrs'] = pd.to_numeric(df['steaming_time_hrs'], errors='coerce')
-df['me_fuel_consumed'] = pd.to_numeric(df['me_fuel_consumed'], errors='coerce')
-
-# =========================
-# Total Metrics
-# =========================
-total_distance = df['distance_travelled_actual'].sum()
-total_time = df['steaming_time_hrs'].sum()
-total_fuel = df['me_fuel_consumed'].sum()
-voyage_avg_speed = total_distance / total_time if total_time else 0
-
-# =========================
-# Good and Bad Weather Segmentation
-# =========================
-good_days = df[df['day_status'] == 'GOOD WEATHER DAY']
-bad_days = df[df['day_status'] == 'BAD WEATHER DAY']
-
-# Good Weather Metrics
-good_distance = good_days['distance_travelled_actual'].sum()
-good_time = good_days['steaming_time_hrs'].sum()
-good_fuel = good_days['me_fuel_consumed'].sum()
-good_speed = good_distance / good_time if good_time else 0
-good_fo_hr = good_fuel / good_time if good_time else 0
-good_fo_day = good_fo_hr * 24
-
-# Bad Weather Metrics
-bad_distance = bad_days['distance_travelled_actual'].sum()
-bad_time = bad_days['steaming_time_hrs'].sum()
-bad_fuel = bad_days['me_fuel_consumed'].sum()
-bad_speed = bad_distance / bad_time if bad_time else 0
-
-# =========================
-# Warranted Calculations
-# =========================
-fuel_tolerance_mt = warranted_consumption * (fuel_tolerance_percent / 100)
-warranted_plus_tol = warranted_consumption + fuel_tolerance_mt
-warranted_minus_tol = warranted_consumption - fuel_tolerance_mt
-
-# Entire Voyage Consumption Using Good Weather Consumption (c)
-entire_voyage_good_weather_based = (total_distance / good_speed) * (good_fo_day / 24) if good_speed else 0
-
-# Maximum and Minimum Warranted Fuel
-max_warranted_cons = (total_distance / (good_speed if good_speed<warranted_speed+speed_tolerance_knots and good_speed>warranted_speed-speed_tolerance_knots else warranted_speed+speed_tolerance_knots if good_speed>warranted_speed+speed_tolerance_knots else warranted_speed-speed_tolerance_knots )) * (warranted_plus_tol / 24)
-min_warranted_cons = (total_distance / (good_speed if good_speed<warranted_speed+speed_tolerance_knots and good_speed>warranted_speed-speed_tolerance_knots else warranted_speed+speed_tolerance_knots if good_speed>warranted_speed+speed_tolerance_knots else warranted_speed-speed_tolerance_knots)) * (warranted_minus_tol / 24)
-
-# Overconsumption and Saving (based on good weather based consumption)
-fuel_overconsumption = (entire_voyage_good_weather_based - max_warranted_cons)if entire_voyage_good_weather_based>max_warranted_cons else 0
-fuel_saving = (entire_voyage_good_weather_based - min_warranted_cons)if entire_voyage_good_weather_based<min_warranted_cons else 0
-
-# Time Estimates for reference
-time_at_good_spd = total_distance / (good_speed if good_speed<warranted_speed+speed_tolerance_knots and good_speed>warranted_speed-speed_tolerance_knots else warranted_speed+speed_tolerance_knots if good_speed>warranted_speed+speed_tolerance_knots else warranted_speed-speed_tolerance_knots)
-max_time = total_distance / (warranted_speed - speed_tolerance_knots)
-min_time = total_distance / (warranted_speed + speed_tolerance_knots)
-time_gained = (min_time - time_at_good_spd)if time_at_good_spd<min_time else 0
-time_lost = (time_at_good_spd - max_time)if time_at_good_spd>max_time else 0
-import streamlit as st
-
-results = {
-    "Total Distance (nm)": 0,
-    "Total Steaming Time (hrs)": 0,
-    "Voyage Avg Speed (knots)": 0,
-    "Good Wx Distance (nm)": 0,
-    "Good Wx Time (hrs)": 0,
-    "Good Wx Speed (knots)": 0,
-    "Good Wx FO Cons (MT)": 0,
-    "Good Wx FO Rate (MT/hr)": 0,
-    "Good Wx FO Rate (MT/day)": 0,
-    "Bad Wx Distance (nm)": 0,
-    "Bad Wx Time (hrs)": 0,
-    "Bad Wx FO Cons (MT)": 0,
-    "Bad Wx Speed (knots)": 0,
-    "Total ME Fuel (MT)": 0,
-    "Entire Voyage Cons (MT) via Good Wx Perf": 0,
-    "Max Warranted FO (MT)": 0,
-    "Min Warranted FO (MT)": 0,
-    "Fuel Overconsumption (MT)": 0,
-    "Fuel Saving (MT)": 0,
-    "Time @ Good Wx Speed (hrs)": 0,
-    "Max Time @ Warranted Spd (hrs)": 0,
-    "Min Time @ Warranted Spd (hrs)": 0,
-    "Time Gained (hrs)": 0,
-    "Time Lost (hrs)": 0}
-
-        else:
-            st.warning("Please upload calculation data on Page 1.")
+        st.session_state.results = results
+        for key, value in results.items():
+            st.metric(label=key, value=value)
+    else:
+        st.warning("Please upload calculation data on Page 1.")
 
 elif page == "3. Weather Data":
     st.title("Page 3: Weather Data Analysis")
